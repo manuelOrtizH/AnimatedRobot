@@ -82,9 +82,9 @@ public class Robot : MonoBehaviour
 
             //FootRight
         Vector3 footSize = new Vector3(0.5f, 0.5f, 1.0f);
-        Matrix4x4 footRightM = ModelBlock("FootRight",footSize /*Scale*/, new Vector3(0.25f, -3.2f, 0.3f) /*Translate*/);
+        Matrix4x4 footRightM = ModelBlock("FootRight",footSize /*Scale*/, new Vector3(0.25f, -3.2f, -0.3f) /*Translate*/);
             //FootLeft
-        Matrix4x4 footLeftM = ModelBlock("FootLeft",footSize /*Scale*/, new Vector3(-0.25f, -3.2f, 0.3f) /*Translate*/);
+        Matrix4x4 footLeftM = ModelBlock("FootLeft",footSize /*Scale*/, new Vector3(-0.25f, -3.2f, -0.3f) /*Translate*/);
 
         //ARM
             //ShoulderRight
@@ -94,28 +94,28 @@ public class Robot : MonoBehaviour
         Matrix4x4 shoulderLeftM = ModelBlock("ShoulderLeft",shoulderSize /*Scale*/, new Vector3(-0.75f, 1.0f, 0) /*Translate*/);
 
             //BicepRight
-        Vector3 bicepSize = new Vector3(1, 0.3f, 0.3f);
-        Matrix4x4 bicepRightM = ModelBlock("BicepRight",bicepSize /*Scale*/, new Vector3(1.50f, 1.0f, 0) /*Translate*/);
+        Vector3 bicepSize = new Vector3(0.3f, 1.0f, 0.3f);
+        Matrix4x4 bicepRightM = ModelBlock("BicepRight",bicepSize /*Scale*/, new Vector3(0.75f, 0.28f, 0) /*Translate*/);
             //BicepLeft
-        Matrix4x4 bicepLeftM = ModelBlock("BicepLeft",bicepSize /*Scale*/, new Vector3(-1.50f, 1.0f, 0) /*Translate*/);
+        Matrix4x4 bicepLeftM = ModelBlock("BicepLeft",bicepSize /*Scale*/, new Vector3(-0.75f, 0.28f, 0) /*Translate*/);
 
             //ElbowRight
         Vector3 elbowSize = new Vector3(0.2f, 0.2f, 0.2f);
-        Matrix4x4 elbowRightM = ModelBlock("ElbowRight",elbowSize /*Scale*/, new Vector3(2.15f, 1.0f, 0) /*Translate*/);
+        Matrix4x4 elbowRightM = ModelBlock("ElbowRight",elbowSize /*Scale*/, new Vector3(0.75f, -0.36f, 0) /*Translate*/);
             //ElbowLeft
-        Matrix4x4 elbowLeftM = ModelBlock("ElbowLeft",elbowSize /*Scale*/, new Vector3(-2.15f, 1.0f, 0) /*Translate*/);
+        Matrix4x4 elbowLeftM = ModelBlock("ElbowLeft",elbowSize /*Scale*/, new Vector3(-0.75f, -0.36f, 0) /*Translate*/);
 
             //ForearmRight
-        Vector3 forearmSize = new Vector3(0.6f, 0.3f, 0.3f);
-        Matrix4x4 forearmRightM = ModelBlock("ForearmRight",forearmSize /*Scale*/, new Vector3(2.35f, 1.0f, 0) /*Translate*/);
+        Vector3 forearmSize = new Vector3(0.3f, 0.6f, 0.3f);
+        Matrix4x4 forearmRightM = ModelBlock("ForearmRight",forearmSize /*Scale*/, new Vector3(0.75f, -0.77f, 0) /*Translate*/);
             //ForearmLeft
-        Matrix4x4 forearmLeftM = ModelBlock("ForearmLeft",forearmSize /*Scale*/, new Vector3(-2.35f, 1.0f, 0) /*Translate*/);
+        Matrix4x4 forearmLeftM = ModelBlock("ForearmLeft",forearmSize /*Scale*/, new Vector3(-0.75f, -0.77f, 0) /*Translate*/);
 
             //HandRight
         Vector3 handSize = new Vector3(0.2f, 0.2f, 0.2f);
-        Matrix4x4 handRightM = ModelBlock("HandRight",handSize /*Scale*/, new Vector3(2.8f, 1.0f, 0) /*Translate*/);
+        Matrix4x4 handRightM = ModelBlock("HandRight",handSize /*Scale*/, new Vector3(0.75f, -1.19f, 0) /*Translate*/);
             //HandLeft
-        Matrix4x4 handLeftM = ModelBlock("HandLeft",handSize /*Scale*/, new Vector3(-2.8f, 1.0f, 0) /*Translate*/);
+        Matrix4x4 handLeftM = ModelBlock("HandLeft",handSize /*Scale*/, new Vector3(-0.75f, -1.19f, 0) /*Translate*/);
         
     }
 }
