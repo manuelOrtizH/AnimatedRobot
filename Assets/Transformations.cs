@@ -20,6 +20,15 @@ public class Transformations
         return tm;
     }
 
+    public static Matrix4x4 Pivoted(float tx, float ty, float tz)
+    {
+        Matrix4x4 tm = Matrix4x4.identity;
+        tm[0, 3] = -1*tx;
+        tm[1, 3] = -1*ty;
+        tm[2, 3] = -1*tz;
+        return tm;
+    }
+
     public static Matrix4x4 ScaleM(float sx, float sy, float sz)
     {
         Matrix4x4 sm = Matrix4x4.identity;
