@@ -81,51 +81,25 @@ public class Robot : MonoBehaviour
         return m;
     }
 
-    Vector3[] ModelBlockWRotationX(string blockToCreate, float rotationAngle, Vector3 toScale, float side, Vector3 toTranslate)
-    {
+    Vector3[] Model(GameObject blockToCreate, float rotationAngle, Vector3 toScale, float axisSide, Vector3 toTranslate, Transformations.AXIS axis){
         Matrix4x4 s = Transformations.ScaleM(toScale.x, toScale.y, toScale.z);
-        Matrix4x4 t = Transformations.TranslateM(toTranslate.x*side, toTranslate.y, toTranslate.z);
-        Matrix4x4 temporalLeftThighMovement = Transformations.RotateM(rotationAngle, Transformations.AXIS.AX_X);
-        t = t  *  temporalLeftThighMovement;
-        return ApplyTransformations(t * s, GameObject.Find(blockToCreate));
+        Matrix4x4 t = Transformations.TranslateM(toTranslate.x*axisSide, toTranslate.y, toTranslate.z);
+        Matrix4x4 temporMovement = Transformations.RotateM(rotationAngle, axis);
+        t = t  *  temporMovement;
+        return ApplyTransformations(t * s, blockToCreate);
     }
 
-
-    Vector3[] ModelBlockWRotationY(string blockToCreate, float rotationAngle, Vector3 toScale, Vector3 toTranslate)
-    {
-        Matrix4x4 s = Transformations.ScaleM(toScale.x, toScale.y, toScale.z);
-        Matrix4x4 t = Transformations.TranslateM(toTranslate.x, toTranslate.y, toTranslate.z);
-        Matrix4x4 temporalLeftThighMovement = Transformations.RotateM(rotationAngle, Transformations.AXIS.AX_Y);
-        t = t  *  temporalLeftThighMovement;
-        return ApplyTransformations(t * s, GameObject.Find(blockToCreate));
-    }
-
-    Vector3[] ModelBlockWRotationYWithPivot(string blockToCreate, Vector3 pivot, float rotationAngle, Vector3 toScale, Vector3 toTranslate)
-    {
+    Vector3[] ModelWithPivot(GameObject blockToCreate, Vector3 pivot, float rotationAngle, Vector3 toScale, float axisSide,Vector3 toTranslate, Transformations.AXIS axis){
         Matrix4x4 s = Transformations.ScaleM(toScale.x, toScale.y, toScale.z);
         Matrix4x4 p = Transformations.Pivoted(pivot.x, pivot.y, pivot.z);
-        Matrix4x4 temporalLeftThighMovement = Transformations.RotateM(rotationAngle, Transformations.AXIS.AX_X);
-        temporalLeftThighMovement = p * temporalLeftThighMovement;
-        Vector3[] tempM = ApplyTransformations(p, GameObject.Find(blockToCreate));
-        Matrix4x4 temporalLeftThighMovement2 = Transformations.RotateM(rotationAngle*1.0008f, Transformations.AXIS.AX_Y);
-        temporalLeftThighMovement = (p *temporalLeftThighMovement2) * Transformations.Pivoted(pivot.x * -1, pivot.y * -1,  pivot.z * -1);
-        Matrix4x4 t = Transformations.TranslateM(toTranslate.x, toTranslate.y, toTranslate.z);
-        t *= temporalLeftThighMovement;
-        return ApplyTransformations(t * s, GameObject.Find(blockToCreate));
-    }
-
-    Vector3[] ModelBlockWRotationXWithPivot(string blockToCreate, Vector3 pivot, float rotationAngle, Vector3 toScale, float side, Vector3 toTranslate)
-    {
-        Matrix4x4 s = Transformations.ScaleM(toScale.x, toScale.y, toScale.z);
-        Matrix4x4 p = Transformations.Pivoted(pivot.x, pivot.y, pivot.z);
-        Matrix4x4 temporalLeftThighMovement = Transformations.RotateM(rotationAngle, Transformations.AXIS.AX_X);
-        temporalLeftThighMovement = p * temporalLeftThighMovement;
-        Vector3[] tempM = ApplyTransformations(p, GameObject.Find(blockToCreate));
-        Matrix4x4 temporalLeftThighMovement2 = Transformations.RotateM(rotationAngle*1.0008f, Transformations.AXIS.AX_X);
-        temporalLeftThighMovement = (p *temporalLeftThighMovement2) * Transformations.Pivoted(pivot.x * -1, pivot.y * -1,  pivot.z * -1);
-        Matrix4x4 t = Transformations.TranslateM(toTranslate.x*side, toTranslate.y, toTranslate.z);
-        t *= temporalLeftThighMovement;
-        return ApplyTransformations(t * s, GameObject.Find(blockToCreate));
+        Matrix4x4 tempMovement = Transformations.RotateM(rotationAngle, axis);
+        tempMovement = p * tempMovement;
+        Vector3[] tempM = ApplyTransformations(p, blockToCreate);
+        Matrix4x4 tempMovement2 = Transformations.RotateM(rotationAngle*1.0008f, axis);
+        tempMovement = (p *tempMovement2) * Transformations.Pivoted(pivot.x * -1, pivot.y * -1,  pivot.z * -1);
+        Matrix4x4 t = Transformations.TranslateM(toTranslate.x*axisSide, toTranslate.y, toTranslate.z);
+        t *= tempMovement;
+        return ApplyTransformations(t * s, blockToCreate);
     }
 
     // Start is called before the first frame update
@@ -139,8 +113,7 @@ public class Robot : MonoBehaviour
         
     }
 
-    void AnimateLeg(bool isLeft, float rotation){
-        float direction;
+    void CheckAxisSide(bool isLeft){
         if (isLeft){
             side = "Left";
             axisSide = -1.0f;
@@ -148,62 +121,62 @@ public class Robot : MonoBehaviour
             side = "Right";
             axisSide = 1.0f;
         }
-     
+    }
+
+    void AnimateLeg(bool isLeft, float rotation){
+        CheckAxisSide(isLeft);
         ApplyTransformations(Transformations.ScaleM(thighSize.x, thighSize.y, thighSize.z), GameObject.Find(string.Concat("Thigh", side)));
+        Transformations.AXIS axis = Transformations.AXIS.AX_X;
         //Pivot
         Vector3 thighPos = new Vector3(0.25f, -0.7f, 0f);
-        Vector3[] thighM = ModelBlockWRotationX(string.Concat("Thigh", side), rotation, thighSize, axisSide, thighPos/*Translate*/);
+        Vector3[] thighM = Model(GameObject.Find(string.Concat("Thigh", side)), rotation, thighSize, axisSide, thighPos, axis);
         //Knee
         Vector3 kneePos =  new Vector3(0.25f, -1.5f, 0);
-        Vector3[] kneeM = ModelBlockWRotationXWithPivot(string.Concat("Knee", side),  new Vector3(thighM[7].x, thighM[7].y, thighM[7].z) ,rotation, kneeSize, axisSide, kneePos);
+        Vector3[] kneeM = ModelWithPivot(GameObject.Find(string.Concat("Knee", side)),  new Vector3(thighM[7].x, thighM[7].y, thighM[7].z) ,rotation, kneeSize, axisSide, kneePos, axis);
         //Leg
         Vector3 legPos = new Vector3(0.25f, -2.3f, 0);
-        Vector3[] legM = ModelBlockWRotationXWithPivot(string.Concat("Leg", side), new Vector3(kneeM[7].x, kneeM[7].y, kneeM[7].z), rotation, legSize, axisSide, legPos);
+        Vector3[] legM = ModelWithPivot(GameObject.Find(string.Concat("Leg", side)), new Vector3(kneeM[7].x, kneeM[7].y, kneeM[7].z), rotation, legSize, axisSide, legPos, axis);
         //Foot
         Vector3 footPos = new Vector3(-0.25f, -3.2f, -0.3f);
-        Vector3[] footM = ModelBlockWRotationXWithPivot(string.Concat("Foot", side), new Vector3(legM[7].x, legM[7].y, legM[7].z), rotation, footSize, axisSide, footPos);
+        Vector3[] footM = ModelWithPivot(GameObject.Find(string.Concat("Foot", side)), new Vector3(legM[7].x, legM[7].y, legM[7].z), rotation, footSize, axisSide, footPos, axis);
     }
 
     void AnimateBody(float rotation){
         ApplyTransformations(Transformations.ScaleM(hipsSize.x, hipsSize.y, hipsSize.z), GameObject.Find("Hips"));
+        Transformations.AXIS axis = Transformations.AXIS.AX_Y;
+        axisSide = 1.0f;
         Vector3 hipsPos = new Vector3(0,0,0);
-        Vector3[] hipsM = ModelBlockWRotationY("Hips", rotation, hipsSize, hipsPos);
+        Vector3[] hipsM = Model(GameObject.Find("Hips"), rotation, hipsSize, axisSide,hipsPos, axis);
         
         Vector3 torsoPos = new Vector3(0, 0.7f, 0);
-        Vector3[] torsoM = ModelBlockWRotationYWithPivot("Torso", new Vector3(hipsM[7].x, hipsM[7].y, hipsM[7].z),rotation, torsoSize, torsoPos);
+        Vector3[] torsoM = ModelWithPivot(GameObject.Find("Torso"), new Vector3(hipsM[7].x, hipsM[7].y, hipsM[7].z),rotation, torsoSize, axisSide,torsoPos, axis);
 
         Vector3 neckSize = new Vector3(0.15f, 0.20f, 0.15f);
-        Matrix4x4 neckM = ModelBlock("Neck", neckSize /*Scale*/, new Vector3(0, 1.3f, 0) /*Translate*/);
+        Matrix4x4 neckM = ModelBlock("Neck", neckSize /*Scale*/, new Vector3(0, 1.3f, 0));
         // HEAD
         Vector3 headSize = new Vector3(0.4f, 0.4f, 0.4f);
-        Matrix4x4 headM = ModelBlock("Head", headSize /*Scale*/, new Vector3(0, 1.5f, 0) /*Translate*/);
+        Matrix4x4 headM = ModelBlock("Head", headSize /*Scale*/, new Vector3(0, 1.5f, 0));
     }
 
     void AnimateArm(bool isLeft, float rotation){
-        if (isLeft){
-            side = "Left";
-            axisSide = -1.0f;
-        }else{
-            side = "Right";
-            axisSide = 1.0f;
-        }
-
+        CheckAxisSide(isLeft);
         ApplyTransformations(Transformations.ScaleM(shoulderSize.x, shoulderSize.y, shoulderSize.z), GameObject.Find(string.Concat("Shoulder", side)));        
+        Transformations.AXIS axis = Transformations.AXIS.AX_X;
         //Pivot
         Vector3 shoulderPos = new Vector3(0.75f, 1.0f, 0f);
-        Vector3[] shoulderM = ModelBlockWRotationX(string.Concat("Shoulder", side), rotation, shoulderSize, axisSide, shoulderPos/*Translate*/);
+        Vector3[] shoulderM = Model(GameObject.Find(string.Concat("Shoulder", side)), rotation, shoulderSize, axisSide, shoulderPos, axis);
         //Knee
         Vector3 bicepPos =  new Vector3(0.75f, 0.28f, 0);
-        Vector3[] bicepM = ModelBlockWRotationXWithPivot(string.Concat("Bicep", side),  new Vector3(shoulderM[7].x, shoulderM[7].y, shoulderM[7].z) ,rotation, bicepSize, axisSide, bicepPos);
+        Vector3[] bicepM = ModelWithPivot(GameObject.Find(string.Concat("Bicep", side)),  new Vector3(shoulderM[7].x, shoulderM[7].y, shoulderM[7].z) ,rotation, bicepSize, axisSide, bicepPos, axis);
         //Leg
         Vector3 elbowPos = new Vector3(0.75f, -0.36f, 0);
-        Vector3[] elbowM = ModelBlockWRotationXWithPivot(string.Concat("Elbow", side), new Vector3(bicepM[7].x, bicepM[7].y, bicepM[7].z), rotation, elbowSize, axisSide, elbowPos);
+        Vector3[] elbowM = ModelWithPivot(GameObject.Find(string.Concat("Elbow", side)), new Vector3(bicepM[7].x, bicepM[7].y, bicepM[7].z), rotation, elbowSize, axisSide, elbowPos, axis);
         //Foot
         Vector3 forearmPos = new Vector3(0.75f, -0.77f, 0);
-        Vector3[] forearmM = ModelBlockWRotationXWithPivot(string.Concat("Forearm", side), new Vector3(elbowM[7].x, elbowM[7].y, elbowM[7].z), rotation, forearmSize, axisSide, forearmPos);
+        Vector3[] forearmM = ModelWithPivot(GameObject.Find(string.Concat("Forearm", side)), new Vector3(elbowM[7].x, elbowM[7].y, elbowM[7].z), rotation, forearmSize, axisSide, forearmPos, axis);
         //Hand
         Vector3 handPos = new Vector3(0.75f, -1.19f, 0);
-        Vector3[] handM = ModelBlockWRotationXWithPivot(string.Concat("Hand", side), new Vector3(forearmM[7].x, forearmM[7].y, forearmM[7].z), rotation, handSize, axisSide, handPos);
+        Vector3[] handM = ModelWithPivot(GameObject.Find(string.Concat("Hand", side)), new Vector3(forearmM[7].x, forearmM[7].y, forearmM[7].z), rotation, handSize, axisSide, handPos, axis);
 
     }
 
