@@ -8,22 +8,32 @@ public class Robot : MonoBehaviour
     string side;
     float axisSide;
     float directionLeftArm = 1.0f;
+    float directionBody = 1.0f;
     float directionLeftLeg = 1.0f;
     float directionRightArm = -1.0f;
     float directionRightLeg = -1.0f;
     float minAngleLegs = 25.0f;  
     float maxAngleLegs = -25.0f;  
+    float minAngleBody = 2.0f;  
+    float maxAngleBody = -2.0f;  
     float deltaLegs = 0.7f;
+    float deltaBody = 0.1f;
     float rotationLegsLeft = 0.0f;
     float rotationLegsRight = 0.0f;
     float minAngleArms = 5.0f;  // minimum rotation angle in X
     float maxAngleArms = -5.0f;  
     float minAngleArmsRight = 5.0f;  // minimum rotation angle in X
     float maxAngleArmsRight = -5.0f; 
-    float deltaArms = 0.1f;
+    float deltaArms = 0.25f;
     float rotationArmsLeft = 0.0f;
+    float rotationBody = 0.0f;
     float rotationArmsRight = 0.0f;
     //End of movement variables.
+    Vector3 hipsSize = new Vector3(1, 0.3f, 0.5f);
+    Vector3 torsoSize = new Vector3(1, 1, 0.5f);
+    Vector3 neckSize = new Vector3(0.15f, 0.20f, 0.15f);
+    Vector3 headSize = new Vector3(0.4f, 0.4f, 0.4f);
+    
     Vector3 shoulderSize = new Vector3(0.4f, 0.4f, 0.4f);
     Vector3 bicepSize = new Vector3(0.3f, 1.0f, 0.3f);
     Vector3 elbowSize = new Vector3(0.2f, 0.2f, 0.2f);
@@ -79,6 +89,31 @@ public class Robot : MonoBehaviour
         t = t  *  temporalLeftThighMovement;
         return ApplyTransformations(t * s, GameObject.Find(blockToCreate));
     }
+
+
+    Vector3[] ModelBlockWRotationY(string blockToCreate, float rotationAngle, Vector3 toScale, Vector3 toTranslate)
+    {
+        Matrix4x4 s = Transformations.ScaleM(toScale.x, toScale.y, toScale.z);
+        Matrix4x4 t = Transformations.TranslateM(toTranslate.x, toTranslate.y, toTranslate.z);
+        Matrix4x4 temporalLeftThighMovement = Transformations.RotateM(rotationAngle, Transformations.AXIS.AX_Y);
+        t = t  *  temporalLeftThighMovement;
+        return ApplyTransformations(t * s, GameObject.Find(blockToCreate));
+    }
+
+    Vector3[] ModelBlockWRotationYWithPivot(string blockToCreate, Vector3 pivot, float rotationAngle, Vector3 toScale, Vector3 toTranslate)
+    {
+        Matrix4x4 s = Transformations.ScaleM(toScale.x, toScale.y, toScale.z);
+        Matrix4x4 p = Transformations.Pivoted(pivot.x, pivot.y, pivot.z);
+        Matrix4x4 temporalLeftThighMovement = Transformations.RotateM(rotationAngle, Transformations.AXIS.AX_X);
+        temporalLeftThighMovement = p * temporalLeftThighMovement;
+        Vector3[] tempM = ApplyTransformations(p, GameObject.Find(blockToCreate));
+        Matrix4x4 temporalLeftThighMovement2 = Transformations.RotateM(rotationAngle*1.0008f, Transformations.AXIS.AX_Y);
+        temporalLeftThighMovement = (p *temporalLeftThighMovement2) * Transformations.Pivoted(pivot.x * -1, pivot.y * -1,  pivot.z * -1);
+        Matrix4x4 t = Transformations.TranslateM(toTranslate.x, toTranslate.y, toTranslate.z);
+        t *= temporalLeftThighMovement;
+        return ApplyTransformations(t * s, GameObject.Find(blockToCreate));
+    }
+
     Vector3[] ModelBlockWRotationXWithPivot(string blockToCreate, Vector3 pivot, float rotationAngle, Vector3 toScale, float side, Vector3 toTranslate)
     {
         Matrix4x4 s = Transformations.ScaleM(toScale.x, toScale.y, toScale.z);
@@ -129,6 +164,21 @@ public class Robot : MonoBehaviour
         Vector3[] footM = ModelBlockWRotationXWithPivot(string.Concat("Foot", side), new Vector3(legM[7].x, legM[7].y, legM[7].z), rotation, footSize, axisSide, footPos);
     }
 
+    void AnimateBody(float rotation){
+        ApplyTransformations(Transformations.ScaleM(hipsSize.x, hipsSize.y, hipsSize.z), GameObject.Find("Hips"));
+        Vector3 hipsPos = new Vector3(0,0,0);
+        Vector3[] hipsM = ModelBlockWRotationY("Hips", rotation, hipsSize, hipsPos);
+        
+        Vector3 torsoPos = new Vector3(0, 0.7f, 0);
+        Vector3[] torsoM = ModelBlockWRotationYWithPivot("Torso", new Vector3(hipsM[7].x, hipsM[7].y, hipsM[7].z),rotation, torsoSize, torsoPos);
+
+        Vector3 neckSize = new Vector3(0.15f, 0.20f, 0.15f);
+        Matrix4x4 neckM = ModelBlock("Neck", neckSize /*Scale*/, new Vector3(0, 1.3f, 0) /*Translate*/);
+        // HEAD
+        Vector3 headSize = new Vector3(0.4f, 0.4f, 0.4f);
+        Matrix4x4 headM = ModelBlock("Head", headSize /*Scale*/, new Vector3(0, 1.5f, 0) /*Translate*/);
+    }
+
     void AnimateArm(bool isLeft, float rotation){
         if (isLeft){
             side = "Left";
@@ -160,19 +210,9 @@ public class Robot : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        //Make sure that the string to send in ModelBlock exists in the array: blocksNames
-        // HIPS (Root)
-        Vector3 hipsSize = new Vector3(1, 0.3f, 0.5f);
-        Matrix4x4 hipsM = ModelBlock("Hips", hipsSize /*Scale*/, new Vector3(0, 0, 0) /*Translate*/);
-        //TORSO 
-        Vector3 torsoSize = new Vector3(1, 1, 0.5f);
-        Matrix4x4 torsoM = ModelBlock("Torso", torsoSize /*Scale*/, new Vector3(0, 0.7f, 0)/*Translate*/);
-        // NECK
-        Vector3 neckSize = new Vector3(0.15f, 0.20f, 0.15f);
-        Matrix4x4 neckM = ModelBlock("Neck", neckSize /*Scale*/, new Vector3(0, 1.3f, 0) /*Translate*/);
-        // HEAD
-        Vector3 headSize = new Vector3(0.4f, 0.4f, 0.4f);
-        Matrix4x4 headM = ModelBlock("Head", headSize /*Scale*/, new Vector3(0, 1.5f, 0) /*Translate*/);
+        rotationBody = rotationBody - directionBody * deltaBody;
+        if (rotationBody < maxAngleBody || rotationBody > minAngleBody) directionBody = -directionBody;
+        AnimateBody(rotationBody);
         //LeftSide
         rotationLegsLeft = rotationLegsLeft - directionLeftLeg * deltaLegs;
         if (rotationLegsLeft < maxAngleLegs || rotationLegsLeft > minAngleLegs) directionLeftLeg = -directionLeftLeg;
