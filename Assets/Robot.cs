@@ -7,27 +7,29 @@ public class Robot : MonoBehaviour
 {
     string side;
     float axisSide;
+    //Directions
     float directionLeftArm = 1.0f;
     float directionBody = 1.0f;
     float directionLeftLeg = 1.0f;
     float directionRightArm = -1.0f;
     float directionRightLeg = -1.0f;
-    float minAngleLegs = 25.0f;  
-    float maxAngleLegs = -25.0f;  
-    float minAngleBody = 2.0f;  
-    float maxAngleBody = -2.0f;  
-    float deltaLegs = 0.7f;
-    float deltaBody = 0.1f;
-    float rotationLegsLeft = 0.0f;
-    float rotationLegsRight = 0.0f;
-    float minAngleArms = 5.0f;  // minimum rotation angle in X
-    float maxAngleArms = -5.0f;  
-    float minAngleArmsRight = 5.0f;  // minimum rotation angle in X
-    float maxAngleArmsRight = -5.0f; 
+    //Angle
+    readonly float minAngleLegs = 25.0f;  
+    readonly float maxAngleLegs = -25.0f;  
+    readonly float minAngleBody = 5.0f;  
+    readonly float maxAngleBody = -5.0f;  
+    readonly float minAngleArms = 10.0f;  
+    readonly float maxAngleArms = -10.0f;  
+    //Deltas
+    float deltaLegs = 0.45f;
+    float deltaBody = 0.05f;
     float deltaArms = 0.25f;
+    //Rotations
     float rotationArmsLeft = 0.0f;
+    float rotationLegsLeft = 0.0f;
     float rotationBody = 0.0f;
     float rotationArmsRight = 0.0f;
+    float rotationLegsRight = 0.0f;
     //End of movement variables.
     Vector3 hipsSize = new Vector3(1, 0.3f, 0.5f);
     Vector3 torsoSize = new Vector3(1, 1, 0.5f);
@@ -58,7 +60,6 @@ public class Robot : MonoBehaviour
 
     Vector3[] ApplyTransformations(Matrix4x4 t, GameObject target)
     {
-
         Block b = target.GetComponent<Block>();
         Vector3[] newVerts = new Vector3[8];
         for (int v = 0; v < b.vertices.Length; v++)
@@ -84,8 +85,8 @@ public class Robot : MonoBehaviour
     Vector3[] Model(GameObject blockToCreate, float rotationAngle, Vector3 toScale, float axisSide, Vector3 toTranslate, Transformations.AXIS axis){
         Matrix4x4 s = Transformations.ScaleM(toScale.x, toScale.y, toScale.z);
         Matrix4x4 t = Transformations.TranslateM(toTranslate.x*axisSide, toTranslate.y, toTranslate.z);
-        Matrix4x4 temporMovement = Transformations.RotateM(rotationAngle, axis);
-        t = t  *  temporMovement;
+        Matrix4x4 tempMovement = Transformations.RotateM(rotationAngle, axis);
+        t = t  *  tempMovement;
         return ApplyTransformations(t * s, blockToCreate);
     }
 
@@ -112,7 +113,7 @@ public class Robot : MonoBehaviour
         }
         
     }
-
+    //Method to check if the arm/leg is the right or left.
     void CheckAxisSide(bool isLeft){
         if (isLeft){
             side = "Left";
@@ -122,7 +123,7 @@ public class Robot : MonoBehaviour
             axisSide = 1.0f;
         }
     }
-
+    //Method to animate both legs
     void AnimateLeg(bool isLeft, float rotation){
         CheckAxisSide(isLeft);
         ApplyTransformations(Transformations.ScaleM(thighSize.x, thighSize.y, thighSize.z), GameObject.Find(string.Concat("Thigh", side)));
@@ -143,21 +144,22 @@ public class Robot : MonoBehaviour
 
     void AnimateBody(float rotation){
         ApplyTransformations(Transformations.ScaleM(hipsSize.x, hipsSize.y, hipsSize.z), GameObject.Find("Hips"));
-        Transformations.AXIS axis = Transformations.AXIS.AX_Y;
+        Transformations.AXIS axis = Transformations.AXIS.AX_Z;
         axisSide = 1.0f;
+        //Hips
         Vector3 hipsPos = new Vector3(0,0,0);
         Vector3[] hipsM = Model(GameObject.Find("Hips"), rotation, hipsSize, axisSide,hipsPos, axis);
-        
+        //Torso
         Vector3 torsoPos = new Vector3(0, 0.7f, 0);
         Vector3[] torsoM = ModelWithPivot(GameObject.Find("Torso"), new Vector3(hipsM[7].x, hipsM[7].y, hipsM[7].z),rotation, torsoSize, axisSide,torsoPos, axis);
-
+        //Neck
         Vector3 neckSize = new Vector3(0.15f, 0.20f, 0.15f);
         Matrix4x4 neckM = ModelBlock("Neck", neckSize /*Scale*/, new Vector3(0, 1.3f, 0));
-        // HEAD
+        //Head
         Vector3 headSize = new Vector3(0.4f, 0.4f, 0.4f);
         Matrix4x4 headM = ModelBlock("Head", headSize /*Scale*/, new Vector3(0, 1.5f, 0));
     }
-
+    //Method to animate both arms
     void AnimateArm(bool isLeft, float rotation){
         CheckAxisSide(isLeft);
         ApplyTransformations(Transformations.ScaleM(shoulderSize.x, shoulderSize.y, shoulderSize.z), GameObject.Find(string.Concat("Shoulder", side)));        
@@ -177,7 +179,6 @@ public class Robot : MonoBehaviour
         //Hand
         Vector3 handPos = new Vector3(0.75f, -1.19f, 0);
         Vector3[] handM = ModelWithPivot(GameObject.Find(string.Concat("Hand", side)), new Vector3(forearmM[7].x, forearmM[7].y, forearmM[7].z), rotation, handSize, axisSide, handPos, axis);
-
     }
 
     // Update is called once per frame
