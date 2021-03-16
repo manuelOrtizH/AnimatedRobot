@@ -11,15 +11,13 @@ public class Robot : MonoBehaviour
     float directionLeftLeg = 1.0f;
     float directionRightArm = -1.0f;
     float directionRightLeg = -1.0f;
-    float minAngleLegsLeft = 25.0f;  
-    float maxAngleLegsLeft = -25.0f;  
-    float minAngleLegsRight = 25.0f;  
-    float maxAngleLegsRight = -25.0f;  
+    float minAngleLegs = 25.0f;  
+    float maxAngleLegs = -25.0f;  
     float deltaLegs = 0.7f;
     float rotationLegsLeft = 0.0f;
     float rotationLegsRight = 0.0f;
-    float minAngleArmsLeft = 5.0f;  // minimum rotation angle in X
-    float maxAngleArmsLeft = -5.0f;  
+    float minAngleArms = 5.0f;  // minimum rotation angle in X
+    float maxAngleArms = -5.0f;  
     float minAngleArmsRight = 5.0f;  // minimum rotation angle in X
     float maxAngleArmsRight = -5.0f; 
     float deltaArms = 0.1f;
@@ -177,17 +175,17 @@ public class Robot : MonoBehaviour
         Matrix4x4 headM = ModelBlock("Head", headSize /*Scale*/, new Vector3(0, 1.5f, 0) /*Translate*/);
         //LeftSide
         rotationLegsLeft = rotationLegsLeft - directionLeftLeg * deltaLegs;
-        if (rotationLegsLeft < maxAngleLegsLeft || rotationLegsLeft > minAngleLegsLeft) directionLeftLeg = -directionLeftLeg;
+        if (rotationLegsLeft < maxAngleLegs || rotationLegsLeft > minAngleLegs) directionLeftLeg = -directionLeftLeg;
         AnimateLeg(true, rotationLegsLeft);
         rotationArmsLeft = rotationArmsLeft - directionLeftArm * deltaArms;
-        if (rotationArmsLeft < maxAngleArmsLeft || rotationArmsLeft > minAngleArmsLeft) directionLeftArm = -directionLeftArm;
+        if (rotationArmsLeft < maxAngleArms|| rotationArmsLeft > minAngleArms) directionLeftArm = -directionLeftArm;
         AnimateArm(true, rotationArmsLeft);
         //RightSide
         rotationLegsRight= rotationLegsRight - directionRightLeg * deltaLegs;
-        if (rotationLegsRight < maxAngleLegsRight || rotationLegsRight > minAngleLegsRight) directionRightLeg = -directionRightLeg;
+        if (rotationLegsRight < maxAngleLegs || rotationLegsRight > minAngleLegs) directionRightLeg = -directionRightLeg;
         AnimateLeg(false, rotationLegsRight);
         rotationArmsRight = rotationArmsRight - directionRightArm * deltaArms;
-        if (rotationArmsRight < maxAngleArmsRight || rotationArmsRight > minAngleArmsRight) directionRightArm = -directionRightArm;
+        if (rotationArmsRight < maxAngleArms || rotationArmsRight > minAngleArms) directionRightArm = -directionRightArm;
         AnimateArm(false, rotationArmsRight);
         
     }
