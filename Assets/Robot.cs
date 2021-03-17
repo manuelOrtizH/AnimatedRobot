@@ -5,11 +5,21 @@ using UnityEngine;
 
 public class Robot : MonoBehaviour
 {
-    float dir = 1.0f;    // dir can only be 1 or -1
-    float delta = 0.05f;// how much to change rotation on each frame
-    float minAngle = -25.0f;  // minimum rotation angle in Z
-    float maxAngle = 20.0f;// maximum rotation angle in Z
+    float dir = 1.0f;
+    float dir2 = 1.0f;
+    float dir3 = 1.0f;
+    float dir4 = 1.0f;
+    float delta = 0.1f; // how much to change rotation on each frame
+    float minAngle = -10.0f;  // minimum rotation angle in Z
+    float maxAngle = 10.0f; // maximum rotation angle in Z
     float rotLegs = 0.0f;
+    float rotWalk = 10.0f;
+    float rotFoot = 8.0f;
+    float rotKnee = 0.0f;
+    float minAngleKnee = -1.0f;
+    float maxAngleKnee = 1.0f;
+    float maxAngleFoot = -10.0f;
+    float minAngleFoot = 0.0f;
 
     //rotation arms (shoulders)
 
@@ -51,25 +61,32 @@ public class Robot : MonoBehaviour
     void CreateLegs(Matrix4x4 attachedI, float axisSide, string side){
         Matrix4x4 thighT = Transformations.TranslateM(0.30f*axisSide, -0.65f, 0);
         Matrix4x4 thighS = Transformations.ScaleM(0.4f,0.8f, 0.5f);
-        Matrix4x4 thighI = attachedI * thighT;
+        Matrix4x4 thighR = Transformations.RotateM(rotLegs*2.0f, Transformations.AXIS.AX_X);
+        Matrix4x4 thighI = attachedI * thighT * thighR;
         Matrix4x4 thighM = thighI * thighS;
         ApplyTransformations(thighM, GameObject.Find(string.Concat("Thigh", side))); //Concat to get ThighRight or ThighLeft
         
         Matrix4x4 kneeT = Transformations.TranslateM(0.0f*axisSide, -0.60f, 0);
         Matrix4x4 kneeS = Transformations.ScaleM(0.4f, 0.4f, 0.5f);
-        Matrix4x4 kneeI = thighI * kneeT;
+        Matrix4x4 kneeRotation = Transformations.RotateM(rotLegs, Transformations.AXIS.AX_X);
+        Matrix4x4 kneeR = Transformations.RotateM(rotKnee/1.2f, Transformations.AXIS.AX_X);
+        Matrix4x4 kneeI = thighI * kneeT * kneeRotation * kneeR ;
         Matrix4x4 kneeM = kneeI * kneeS;
         ApplyTransformations(kneeM, GameObject.Find(string.Concat("Knee", side))); //Concat to get KneeRight or KneeLeft
 
         Matrix4x4 legT = Transformations.TranslateM(0.0f*axisSide, -0.70f, 0);
         Matrix4x4 legS = Transformations.ScaleM(0.4f, 1.0f, 0.5f);
-        Matrix4x4 legI = kneeI * legT;
+    
+        Matrix4x4 legR = Transformations.RotateM(-rotLegs, Transformations.AXIS.AX_X);
+        Matrix4x4 legRotation = Transformations.RotateM(rotWalk, Transformations.AXIS.AX_X);
+        Matrix4x4 legI = kneeI * legT * legRotation * legR;
         Matrix4x4 legM = legI * legS;
         ApplyTransformations(legM, GameObject.Find(string.Concat("Leg", side)));
 
         Matrix4x4 footT = Transformations.TranslateM(0.0f*axisSide, -0.70f, -0.25f);
         Matrix4x4 footS = Transformations.ScaleM(0.4f, 0.4f, 0.8f);
-        Matrix4x4 footM = legI * footT * footS;
+        Matrix4x4 footR = Transformations.RotateM(-rotFoot, Transformations.AXIS.AX_X);
+        Matrix4x4 footM = legI * footT * footS * footR;
         ApplyTransformations(footM, GameObject.Find(string.Concat("Foot", side)));
         
     }
@@ -83,10 +100,16 @@ public class Robot : MonoBehaviour
         Matrix4x4 hipsI = Matrix4x4.identity; //inherit hips
         ApplyTransformations(hipsM, GameObject.Find("Hips"));
         
-        // rotLegs += dir * delta;
-        // if (rotLegs > maxAngle || rotLegs < minAngle) dir = -dir;
+        rotLegs += dir * delta;
+        if (rotLegs > maxAngle || rotLegs < minAngle) dir = -dir;
+        rotWalk += dir2 * delta;
+        if (rotWalk > maxAngle || rotWalk < minAngle) dir2 = -dir2;
+        rotKnee += dir3 * delta;
+        if (rotKnee > maxAngleKnee || rotKnee < minAngleKnee) dir3 = -dir3;
+        rotFoot += dir4 * delta;
+        if (rotFoot > maxAngleFoot || rotFoot < minAngleFoot) dir4 = -dir4;
         CreateLegs(hipsI, 1.0f, "Right");
-        CreateLegs(hipsI, -1.0f, "Left");
+        // CreateLegs(hipsI, -1.0f, "Left");
 
         //TORSO
         Matrix4x4 torsoT = Transformations.TranslateM(0,0.8f,0);
