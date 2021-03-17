@@ -8,12 +8,12 @@ public class Robot : MonoBehaviour
 
     float[] dirLeft = new float[4]{1.0f, 1.0f, 1.0f, 1.0f};
     float[] dirRight = new float[4]{-1.0f, -1.0f, -1.0f, -1.0f};
-    Dictionary <string, float> anglesLeg = new Dictionary<string, float>(){ {"mAllLeg", -10.0f}, {"MAllLeg", 10.0f},
+    Dictionary <string, float> anglesLeg = new Dictionary<string, float>(){ {"mAllLeg", -20.0f}, {"MAllLeg", 20.0f},
                                                                             {"mKnee", -1.0f}, {"MKnee", 1.0f},
-                                                                            {"mFoot",0.0f}, {"MFoot", -10.0f}};
-    Dictionary <string, float> rotsLeg = new Dictionary<string, float>(){ {"AllLegL", 0.0f}, {"WalkL", 10.0f}, {"FootL", 8.0f}, {"KneeL", 0.0f},
-                                                                          {"AllLegR", 0.0f}, {"WalkR", 10.0f}, {"FootR", 8.0f}, {"KneeR", 0.0f}};
-    float delta = 0.2f;
+                                                                            {"mFoot",-20.0f}, {"MFoot", 0.0f}};
+    Dictionary <string, float> rotsLeg = new Dictionary<string, float>(){ {"AllLegL", 0.0f}, {"WalkL", 20.0f}, {"FootL", 0.0f}, {"KneeL", 0.5f},
+                                                                          {"AllLegR", 0.0f}, {"WalkR", 20.0f}, {"FootR", 0.0f}, {"KneeR", 0.5f}};
+    float delta = 0.1f;
     //End of movement variables.
     //Array to  name all the game objects created and later on, found them by this name.
     string[] blocksNames = {"Hips", "Torso", "Neck", "Head", 
