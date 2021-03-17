@@ -8,7 +8,7 @@ public class Robot : MonoBehaviour
 
     //rotation arms (shoulders)
     float dir = 1.0f;    // dir can only be 1 or -1
-    float delta = 0.1f;// how much to change rotation on each frame
+    float delta = 0.05f;// how much to change rotation on each frame
     float minAngle = -60.0f;  // minimum rotation angle in Z
     float maxAngle = -10.0f;// maximum rotation angle in Z
     float rotArm = -10.0f;
@@ -22,7 +22,10 @@ public class Robot : MonoBehaviour
 
 
     //Array to  name all the game objects created and later on, found them by this name.
-    string[] blocksNames = {"Hips", "Torso", "Neck", "Head", "ShoulderRight", "BicepRight","ElbowRight", "ForeArmRight", "HandRight"};
+    string[] blocksNames = {"Hips", "Torso", "Neck", "Head", 
+    "ShoulderRight", "BicepRight","ElbowRight", "ForeArmRight", "HandRight",
+    "ShoulderLeft", "BicepLeft","ElbowLeft", "ForeArmLeft", "HandLeft",
+    };
 
     Vector3[] ApplyTransformations(Matrix4x4 t, GameObject target)
     {
@@ -90,7 +93,7 @@ public class Robot : MonoBehaviour
         rotArm += dir * delta;
         if (rotArm > maxAngle || rotArm < minAngle) dir = -dir;
 
-        //SHOULDER  
+        //SHOULDER left 
         Matrix4x4 shoulderRightT = Transformations.TranslateM(0.7f,0.35f,0);
         Matrix4x4 shoulderRightR = Transformations.RotateM(90, Transformations.AXIS.AX_Z);
         Matrix4x4 shoulderRightRMove = Transformations.RotateM(rotArm, Transformations.AXIS.AX_Y);
@@ -108,7 +111,7 @@ public class Robot : MonoBehaviour
         Matrix4x4  bicepRightM = bicepRightI * bicepRightS;
         ApplyTransformations(bicepRightM,GameObject.Find("BicepRight") ) ;
 
-        //ELBOW right elbowRight
+        //ELBOW left
 
         rotShoulder += dir * delta;
         if (rotShoulder > maxAngle || rotShoulder < minAngle) dir = -dir;
@@ -134,5 +137,50 @@ public class Robot : MonoBehaviour
         Matrix4x4  handRightS = Transformations.ScaleM(0.2f,0.2f,0.2f);
         Matrix4x4  handRightM =foreArmRightI  * handRightS * handRightT  ;
         ApplyTransformations(handRightM,GameObject.Find("HandRight") ) ;
+
+
+        
+        //SHOULDER  left
+        Matrix4x4 shoulderLeftT = Transformations.TranslateM(-0.7f,0.35f,0);
+        Matrix4x4 shoulderLeftR = Transformations.RotateM(90, Transformations.AXIS.AX_Z);
+        Matrix4x4 shoulderLeftRMove = Transformations.RotateM(rotArm, Transformations.AXIS.AX_Y);
+        Matrix4x4 shoulderLeftS = Transformations.ScaleM(0.3f,0.3f,0.3f);
+        Matrix4x4 shoulderLeftI = torsoI * shoulderLeftT * shoulderLeftR * shoulderLeftRMove;
+        Matrix4x4 shoulderLeftM = shoulderLeftI * shoulderLeftS;
+        ApplyTransformations(shoulderLeftM,GameObject.Find("ShoulderLeft") ) ;
+
+        //BICEP left 
+
+        Matrix4x4  bicepLeftT = Transformations.TranslateM(-0.4f,0.0f,0);
+        Matrix4x4  bicepLeftR = Transformations.RotateM(90, Transformations.AXIS.AX_Z);
+        Matrix4x4  bicepLeftS = Transformations.ScaleM(0.2f,0.4f,0.2f);
+        Matrix4x4  bicepLeftI = shoulderLeftI * bicepLeftT * bicepLeftR;
+        Matrix4x4  bicepLeftM = bicepLeftI * bicepLeftS;
+        ApplyTransformations(bicepLeftM,GameObject.Find("BicepLeft") ) ;
+
+        //ELBOW Left 
+
+
+        Matrix4x4  elbowLeftT = Transformations.TranslateM(0.0f,0.3f,0);
+        Matrix4x4   elbowLeftR = Transformations.RotateM(rotShoulder, Transformations.AXIS.AX_X);
+        Matrix4x4  elbowLeftS = Transformations.ScaleM(0.2f,0.2f,0.2f);
+        Matrix4x4  elbowLeftI = bicepLeftI * elbowLeftT * elbowLeftR ;
+        Matrix4x4  elbowLeftM = elbowLeftI * elbowLeftS;
+        ApplyTransformations(elbowLeftM,GameObject.Find("ElbowLeft") ) ;
+
+        //ForeArmLeft
+
+        Matrix4x4  foreArmLeftT = Transformations.TranslateM(0.0f,0.3f,0);
+        Matrix4x4  foreArmLeftR = Transformations.RotateM(90, Transformations.AXIS.AX_Z);
+        Matrix4x4  foreArmLeftS = Transformations.ScaleM(0.4f,0.2f,0.2f);
+        Matrix4x4  foreArmLeftI = elbowLeftI * foreArmLeftT * foreArmLeftR ;
+        Matrix4x4  foreArmLeftM = foreArmLeftI * foreArmLeftS;
+        ApplyTransformations(foreArmLeftM,GameObject.Find("ForeArmLeft") ) ;
+
+        //HandLeft
+        Matrix4x4  handLeftT = Transformations.TranslateM(1.2f,0.0f,0);
+        Matrix4x4  handLeftS = Transformations.ScaleM(0.2f,0.2f,0.2f);
+        Matrix4x4  handLeftM =foreArmLeftI  * handLeftS * handLeftT  ;
+        ApplyTransformations(handLeftM,GameObject.Find("HandLeft") ) ;
     }
 }
