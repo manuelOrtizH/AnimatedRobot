@@ -5,25 +5,15 @@ using UnityEngine;
 
 public class Robot : MonoBehaviour
 {
-    float dir = 1.0f;
-    float dir2 = 1.0f;
-    float dir3 = 1.0f;
-    float dir4 = 1.0f;
-    float delta = 0.1f; // how much to change rotation on each frame
-    float minAngle = -10.0f;  // minimum rotation angle in Z
-    float maxAngle = 10.0f; // maximum rotation angle in Z
-    float rotLegs = 0.0f;
-    float rotWalk = 10.0f;
-    float rotFoot = 8.0f;
-    float rotKnee = 0.0f;
-    float minAngleKnee = -1.0f;
-    float maxAngleKnee = 1.0f;
-    float maxAngleFoot = -10.0f;
-    float minAngleFoot = 0.0f;
 
-    //rotation arms (shoulders)
-
-
+    float[] dirLeft = new float[4]{1.0f, 1.0f, 1.0f, 1.0f};
+    float[] dirRight = new float[4]{-1.0f, -1.0f, -1.0f, -1.0f};
+    Dictionary <string, float> anglesLeg = new Dictionary<string, float>(){ {"mAllLeg", -10.0f}, {"MAllLeg", 10.0f},
+                                                                            {"mKnee", -1.0f}, {"MKnee", 1.0f},
+                                                                            {"mFoot",0.0f}, {"MFoot", -10.0f}};
+    Dictionary <string, float> rotsLeg = new Dictionary<string, float>(){ {"AllLegL", 0.0f}, {"WalkL", 10.0f}, {"FootL", 8.0f}, {"KneeL", 0.0f},
+                                                                          {"AllLegR", 0.0f}, {"WalkR", 10.0f}, {"FootR", 8.0f}, {"KneeR", 0.0f}};
+    float delta = 0.2f;
     //End of movement variables.
     //Array to  name all the game objects created and later on, found them by this name.
     string[] blocksNames = {"Hips", "Torso", "Neck", "Head", 
@@ -56,9 +46,11 @@ public class Robot : MonoBehaviour
             GameObject go = new GameObject(blocksNames[i]);
             go.AddComponent<Block>();
         }
+ 
     }
 
-    void CreateLegs(Matrix4x4 attachedI, float axisSide, string side){
+
+    void CreateLegs(Matrix4x4 attachedI, float axisSide, string side, float rotLegs, float rotWalk, float rotKnee, float rotFoot){
         Matrix4x4 thighT = Transformations.TranslateM(0.30f*axisSide, -0.65f, 0);
         Matrix4x4 thighS = Transformations.ScaleM(0.4f,0.8f, 0.5f);
         Matrix4x4 thighR = Transformations.RotateM(rotLegs*2.0f, Transformations.AXIS.AX_X);
@@ -99,17 +91,6 @@ public class Robot : MonoBehaviour
         Matrix4x4 hipsM = hipsS;
         Matrix4x4 hipsI = Matrix4x4.identity; //inherit hips
         ApplyTransformations(hipsM, GameObject.Find("Hips"));
-        
-        rotLegs += dir * delta;
-        if (rotLegs > maxAngle || rotLegs < minAngle) dir = -dir;
-        rotWalk += dir2 * delta;
-        if (rotWalk > maxAngle || rotWalk < minAngle) dir2 = -dir2;
-        rotKnee += dir3 * delta;
-        if (rotKnee > maxAngleKnee || rotKnee < minAngleKnee) dir3 = -dir3;
-        rotFoot += dir4 * delta;
-        if (rotFoot > maxAngleFoot || rotFoot < minAngleFoot) dir4 = -dir4;
-        CreateLegs(hipsI, 1.0f, "Right");
-        // CreateLegs(hipsI, -1.0f, "Left");
 
         //TORSO
         Matrix4x4 torsoT = Transformations.TranslateM(0,0.8f,0);
@@ -133,5 +114,27 @@ public class Robot : MonoBehaviour
         Matrix4x4 headS = Transformations.ScaleM(0.5f,0.5f,0.5f);;
         Matrix4x4 headM = neckI * headT * headS;
         ApplyTransformations(headM, GameObject.Find("Head"));
+
+        //LEFT LEG
+        rotsLeg["AllLegL"] += dirLeft[0] * delta;
+        if (rotsLeg["AllLegL"] > anglesLeg["MAllLeg"] || rotsLeg["AllLegL"] < anglesLeg["mAllLeg"]) dirLeft[0] = -dirLeft[0];
+        rotsLeg["WalkL"] += dirLeft[1] * delta;
+        if (rotsLeg["WalkL"] > anglesLeg["MAllLeg"] || rotsLeg["WalkL"] < anglesLeg["mAllLeg"]) dirLeft[1] = -dirLeft[1];
+        rotsLeg["KneeL"] += dirLeft[2] * delta;
+        if (rotsLeg["KneeL"] > anglesLeg["MKnee"] || rotsLeg["KneeL"] < anglesLeg["mKnee"]) dirLeft[2] = -dirLeft[2];
+        rotsLeg["FootL"] += dirLeft[3] * delta;
+        if (rotsLeg["FootL"] > anglesLeg["MFoot"] || rotsLeg["FootL"] < anglesLeg["mFoot"]) dirLeft[3] = -dirLeft[3];
+        CreateLegs(hipsI, -1.0f, "Left", rotsLeg["AllLegL"], rotsLeg["WalkL"] , rotsLeg["KneeL"], rotsLeg["FootL"]);
+
+        //RIGHT LEG
+        rotsLeg["AllLegR"] += dirRight[0] * delta;
+        if (rotsLeg["AllLegR"] > anglesLeg["MAllLeg"] || rotsLeg["AllLegR"] < anglesLeg["mAllLeg"]) dirRight[0] = -dirRight[0];
+        rotsLeg["WalkR"] += dirRight[1] * delta;
+        if (rotsLeg["WalkR"] > anglesLeg["MAllLeg"] || rotsLeg["WalkR"] < anglesLeg["mAllLeg"]) dirRight[1] = -dirRight[1];
+        rotsLeg["KneeR"] += dirRight[2] * delta;
+        if (rotsLeg["KneeR"] > anglesLeg["MKnee"] || rotsLeg["KneeR"] < anglesLeg["mKnee"]) dirRight[2] = -dirRight[2];
+        rotsLeg["FootR"] += dirRight[3] * delta;
+        if (rotsLeg["FootR"] > anglesLeg["MFoot"] || rotsLeg["FootR"] < anglesLeg["mFoot"]) dirRight[3] = -dirRight[3];
+        CreateLegs(hipsI, 1.0f, "Right", rotsLeg["AllLegR"], rotsLeg["WalkR"] , rotsLeg["KneeR"], rotsLeg["FootR"]);
     }
 }
