@@ -5,48 +5,27 @@ using UnityEngine;
 
 public class Robot : MonoBehaviour
 {
-    string side;
-    float axisSide;
-    //Directions
-    float directionLeftArm = 1.0f;
-    float directionBody = 1.0f;
-    float directionLeftLeg = 1.0f;
-    float directionRightArm = -1.0f;
-    float directionRightLeg = -1.0f;
-    //Angle
-    readonly float minAngleLegs = 25.0f;  
-    readonly float maxAngleLegs = -25.0f;  
-    readonly float minAngleBody = 5.0f;  
-    readonly float maxAngleBody = -5.0f;  
-    readonly float minAngleArms = 10.0f;  
-    readonly float maxAngleArms = -10.0f;  
-    //Deltas
-    float deltaLegs = 0.45f;
-    float deltaBody = 0.05f;
-    float deltaArms = 0.25f;
-    //Rotations
-    float rotationArmsLeft = 0.0f;
-    float rotationLegsLeft = 0.0f;
-    float rotationBody = 0.0f;
-    float rotationArmsRight = 0.0f;
-    float rotationLegsRight = 0.0f;
-    //End of movement variables.
-    Vector3 hipsSize = new Vector3(1, 0.3f, 0.5f);
-    Vector3 torsoSize = new Vector3(1, 1, 0.5f);
-    Vector3 neckSize = new Vector3(0.15f, 0.20f, 0.15f);
-    Vector3 headSize = new Vector3(0.4f, 0.4f, 0.4f);
+
+    float[] dirLeftLeg = new float[4]{1.0f, 1.0f, 1.0f, 1.0f};
+    float[] dirRightLeg = new float[4]{-1.0f, -1.0f, -1.0f, -1.0f};
+    float[] dirLeftArm = new float[4]{1.0f, 1.0f, 1.0f, 1.0f};
+    float[] dirRightArm = new float[4]{-1.0f, -1.0f, -1.0f, -1.0f}; 
+    //Dictionary that saves all the angles                              /*Legs Angles*/
+    Dictionary <string, float> angles = new Dictionary<string, float>(){{"mAllLeg", -10.0f}, {"MAllLeg", 10.0f},{"mKnee", -1.0f}, 
+                                                                        {"MKnee", 1.0f},{"mFoot",-20.0f}, {"MFoot", 0.0f},
+                                                                        /*Arms Angles*/
+                                                                        {"mArm", -60.0f}, {"MArm", -10.0f},
+                                                                        {"mShoulder", -90.0f}, {"MShoulder", -10.0f}};
+    //Dictionary that saves all the rots variables                      /*Legs Rots*/
+    Dictionary <string, float> rots = new Dictionary<string, float>(){  {"AllLegL", 0.0f}, {"WalkL", 10.0f}, {"FootL", 0.0f}, 
+                                                                        {"KneeL", 0.5f}, {"AllLegR", 0.0f}, {"WalkR", 10.0f}, 
+                                                                        {"FootR", 0.0f}, {"KneeR", 0.5f},
+                                                                        /*Arms Rots*/
+                                                                        {"ArmR", -10.0f}, {"ArmL", -10.0f},
+                                                                        {"ShoulderR", -10.0f}, {"ShoulderL", -10.0f}};
+    float deltaLeg = 0.2f;
+    float deltaArm = 0.1f;
     
-    Vector3 shoulderSize = new Vector3(0.4f, 0.4f, 0.4f);
-    Vector3 bicepSize = new Vector3(0.3f, 1.0f, 0.3f);
-    Vector3 elbowSize = new Vector3(0.2f, 0.2f, 0.2f);
-    Vector3 forearmSize = new Vector3(0.3f, 0.6f, 0.3f);
-    Vector3 handSize = new Vector3(0.2f, 0.2f, 0.2f);
-
-    Vector3 thighSize = new Vector3(0.5f, 1.0f, 0.45f);
-    Vector3 kneeSize = new Vector3(0.5f, 0.4f, 0.45f);
-    Vector3 legSize = new Vector3(0.5f, 1.0f, 0.45f);
-    Vector3 footSize = new Vector3(0.5f, 0.5f, 1.0f);
-
     //Array to  name all the game objects created and later on, found them by this name.
     string[] blocksNames = {"Hips", "Torso", "Neck", "Head", 
                             /*Arms*/ 
@@ -58,7 +37,7 @@ public class Robot : MonoBehaviour
                             "LegRight","LegLeft",
                             "FootRight", "FootLeft"};
 
-    Vector3[] ApplyTransformations(Matrix4x4 t, GameObject target)
+    void ApplyTransformations(Matrix4x4 t, GameObject target)
     {
         Block b = target.GetComponent<Block>();
         Vector3[] newVerts = new Vector3[8];
@@ -69,138 +48,154 @@ public class Robot : MonoBehaviour
             newVerts[v] = t * temp;
         }
         b.myMesh.vertices = newVerts;
-        return newVerts;
-    }
-
-    //Single method for aplying translation, scale and then aplying transformations
-    Matrix4x4 ModelBlock(string blockToCreate, Vector3 toScale, Vector3 toTranslate)
-    {
-        Matrix4x4 m = Transformations.ScaleM(toScale.x, toScale.y, toScale.z);
-        Matrix4x4 t = Transformations.TranslateM(toTranslate.x, toTranslate.y, toTranslate.z);
-        m = t * m;
-        ApplyTransformations(m, GameObject.Find(blockToCreate));
-        return m;
-    }
-
-    Vector3[] Model(GameObject blockToCreate, float rotationAngle, Vector3 toScale, float axisSide, Vector3 toTranslate, Transformations.AXIS axis){
-        Matrix4x4 s = Transformations.ScaleM(toScale.x, toScale.y, toScale.z);
-        Matrix4x4 t = Transformations.TranslateM(toTranslate.x*axisSide, toTranslate.y, toTranslate.z);
-        Matrix4x4 tempMovement = Transformations.RotateM(rotationAngle, axis);
-        t = t  *  tempMovement;
-        return ApplyTransformations(t * s, blockToCreate);
-    }
-
-    Vector3[] ModelWithPivot(GameObject blockToCreate, Vector3 pivot, float rotationAngle, Vector3 toScale, float axisSide,Vector3 toTranslate, Transformations.AXIS axis){
-        Matrix4x4 s = Transformations.ScaleM(toScale.x, toScale.y, toScale.z);
-        Matrix4x4 p = Transformations.Pivoted(pivot.x, pivot.y, pivot.z);
-        Matrix4x4 tempMovement = Transformations.RotateM(rotationAngle, axis);
-        tempMovement = p * tempMovement;
-        Vector3[] tempM = ApplyTransformations(p, blockToCreate);
-        Matrix4x4 tempMovement2 = Transformations.RotateM(rotationAngle*1.0008f, axis);
-        tempMovement = (p *tempMovement2) * Transformations.Pivoted(pivot.x * -1, pivot.y * -1,  pivot.z * -1);
-        Matrix4x4 t = Transformations.TranslateM(toTranslate.x*axisSide, toTranslate.y, toTranslate.z);
-        t *= tempMovement;
-        return ApplyTransformations(t * s, blockToCreate);
     }
 
     // Start is called before the first frame update
     void Start()
     {
-        for (int i = 0; i < blocksNames.Length; i++)
-        {
+        for (int i = 0; i < blocksNames.Length; i++){
             GameObject go = new GameObject(blocksNames[i]);
             go.AddComponent<Block>();
         }
-        
-    }
-    //Method to check if the arm/leg is the right or left.
-    void CheckAxisSide(bool isLeft){
-        if (isLeft){
-            side = "Left";
-            axisSide = -1.0f;
-        }else{
-            side = "Right";
-            axisSide = 1.0f;
-        }
-    }
-    //Method to animate both legs
-    void AnimateLeg(bool isLeft, float rotation){
-        CheckAxisSide(isLeft);
-        ApplyTransformations(Transformations.ScaleM(thighSize.x, thighSize.y, thighSize.z), GameObject.Find(string.Concat("Thigh", side)));
-        Transformations.AXIS axis = Transformations.AXIS.AX_X;
-        //Pivot
-        Vector3 thighPos = new Vector3(0.25f, -0.7f, 0f);
-        Vector3[] thighM = Model(GameObject.Find(string.Concat("Thigh", side)), rotation, thighSize, axisSide, thighPos, axis);
-        //Knee
-        Vector3 kneePos =  new Vector3(0.25f, -1.5f, 0);
-        Vector3[] kneeM = ModelWithPivot(GameObject.Find(string.Concat("Knee", side)),  new Vector3(thighM[7].x, thighM[7].y, thighM[7].z) ,rotation, kneeSize, axisSide, kneePos, axis);
-        //Leg
-        Vector3 legPos = new Vector3(0.25f, -2.3f, 0);
-        Vector3[] legM = ModelWithPivot(GameObject.Find(string.Concat("Leg", side)), new Vector3(kneeM[7].x, kneeM[7].y, kneeM[7].z), rotation, legSize, axisSide, legPos, axis);
-        //Foot
-        Vector3 footPos = new Vector3(-0.25f, -3.2f, -0.3f);
-        Vector3[] footM = ModelWithPivot(GameObject.Find(string.Concat("Foot", side)), new Vector3(legM[7].x, legM[7].y, legM[7].z), rotation, footSize, axisSide, footPos, axis);
+ 
     }
 
-    void AnimateBody(float rotation){
-        ApplyTransformations(Transformations.ScaleM(hipsSize.x, hipsSize.y, hipsSize.z), GameObject.Find("Hips"));
-        Transformations.AXIS axis = Transformations.AXIS.AX_Z;
-        axisSide = 1.0f;
-        //Hips
-        Vector3 hipsPos = new Vector3(0,0,0);
-        Vector3[] hipsM = Model(GameObject.Find("Hips"), rotation, hipsSize, axisSide,hipsPos, axis);
-        //Torso
-        Vector3 torsoPos = new Vector3(0, 0.7f, 0);
-        Vector3[] torsoM = ModelWithPivot(GameObject.Find("Torso"), new Vector3(hipsM[7].x, hipsM[7].y, hipsM[7].z),rotation, torsoSize, axisSide,torsoPos, axis);
-        //Neck
-        Vector3 neckSize = new Vector3(0.15f, 0.20f, 0.15f);
-        Matrix4x4 neckM = ModelBlock("Neck", neckSize /*Scale*/, new Vector3(0, 1.3f, 0));
-        //Head
-        Vector3 headSize = new Vector3(0.4f, 0.4f, 0.4f);
-        Matrix4x4 headM = ModelBlock("Head", headSize /*Scale*/, new Vector3(0, 1.5f, 0));
+    void AnimateArms(Matrix4x4 attachedI, float axisSide, string side, float rotArm, float rotShoulder){
+        //SHOULDER 
+        Matrix4x4 shoulderT = Transformations.TranslateM(0.7f*axisSide,0.35f,0);
+        Matrix4x4 shoulderR = Transformations.RotateM(90, Transformations.AXIS.AX_Z);
+        Matrix4x4 shoulderMove = Transformations.RotateM(rotArm, Transformations.AXIS.AX_Y);
+        Matrix4x4 shoulderS = Transformations.ScaleM(0.3f,0.3f,0.3f);
+        Matrix4x4 shoulderI = attachedI * shoulderT * shoulderR * shoulderMove;
+        Matrix4x4 shoulderM = shoulderI * shoulderS;
+        ApplyTransformations(shoulderM,GameObject.Find(string.Concat("Shoulder", side)) ) ;
+
+        //BICEP
+        Matrix4x4  bicepT = Transformations.TranslateM(-0.4f,0.0f,0);
+        Matrix4x4  bicepR = Transformations.RotateM(90, Transformations.AXIS.AX_Z);
+        Matrix4x4  bicepS = Transformations.ScaleM(0.2f,0.4f,0.2f);
+        Matrix4x4  bicepI = shoulderI * bicepT * bicepR;
+        Matrix4x4  bicepM = bicepI * bicepS;
+        ApplyTransformations(bicepM, GameObject.Find(string.Concat("Bicep", side))) ;
+
+        //ELBOW
+        Matrix4x4  elbowT = Transformations.TranslateM(0.0f*axisSide,0.3f,0);
+        Matrix4x4  elbowR = Transformations.RotateM(rotShoulder, Transformations.AXIS.AX_X);
+        Matrix4x4  elbowS = Transformations.ScaleM(0.2f,0.2f,0.2f);
+        Matrix4x4  elbowI = bicepI * elbowT * elbowR ;
+        Matrix4x4  elbowM = elbowI * elbowS;
+        ApplyTransformations(elbowM,GameObject.Find(string.Concat("Elbow", side)) ) ;
+
+        //FOREARM
+        Matrix4x4  forearmT = Transformations.TranslateM(0.0f*axisSide,0.3f,0);
+        Matrix4x4  forearmR = Transformations.RotateM(90, Transformations.AXIS.AX_Z);
+        Matrix4x4  forearmS = Transformations.ScaleM(0.4f,0.2f,0.2f);
+        Matrix4x4  forearmI = elbowI * forearmT * forearmR ;
+        Matrix4x4  forearmM = forearmI * forearmS;
+        ApplyTransformations(forearmM,GameObject.Find(string.Concat("Forearm", side)) ) ;
+
+        //HAND
+        Matrix4x4  handT = Transformations.TranslateM(1.2f,0.0f,0);
+        Matrix4x4  handS = Transformations.ScaleM(0.2f,0.2f,0.2f);
+        Matrix4x4  handM = forearmI  * handS * handT  ;
+        ApplyTransformations(handM,GameObject.Find(string.Concat("Hand", side)) ) ;
+
     }
-    //Method to animate both arms
-    void AnimateArm(bool isLeft, float rotation){
-        CheckAxisSide(isLeft);
-        ApplyTransformations(Transformations.ScaleM(shoulderSize.x, shoulderSize.y, shoulderSize.z), GameObject.Find(string.Concat("Shoulder", side)));        
-        Transformations.AXIS axis = Transformations.AXIS.AX_X;
-        //Pivot
-        Vector3 shoulderPos = new Vector3(0.75f, 1.0f, 0f);
-        Vector3[] shoulderM = Model(GameObject.Find(string.Concat("Shoulder", side)), rotation, shoulderSize, axisSide, shoulderPos, axis);
-        //Knee
-        Vector3 bicepPos =  new Vector3(0.75f, 0.28f, 0);
-        Vector3[] bicepM = ModelWithPivot(GameObject.Find(string.Concat("Bicep", side)),  new Vector3(shoulderM[7].x, shoulderM[7].y, shoulderM[7].z) ,rotation, bicepSize, axisSide, bicepPos, axis);
-        //Leg
-        Vector3 elbowPos = new Vector3(0.75f, -0.36f, 0);
-        Vector3[] elbowM = ModelWithPivot(GameObject.Find(string.Concat("Elbow", side)), new Vector3(bicepM[7].x, bicepM[7].y, bicepM[7].z), rotation, elbowSize, axisSide, elbowPos, axis);
-        //Foot
-        Vector3 forearmPos = new Vector3(0.75f, -0.77f, 0);
-        Vector3[] forearmM = ModelWithPivot(GameObject.Find(string.Concat("Forearm", side)), new Vector3(elbowM[7].x, elbowM[7].y, elbowM[7].z), rotation, forearmSize, axisSide, forearmPos, axis);
-        //Hand
-        Vector3 handPos = new Vector3(0.75f, -1.19f, 0);
-        Vector3[] handM = ModelWithPivot(GameObject.Find(string.Concat("Hand", side)), new Vector3(forearmM[7].x, forearmM[7].y, forearmM[7].z), rotation, handSize, axisSide, handPos, axis);
+
+
+    void AnimateLegs(Matrix4x4 attachedI, float axisSide, string side, float rotLegs, float rotWalk, float rotKnee, float rotFoot){
+        Matrix4x4 thighT = Transformations.TranslateM(0.30f*axisSide, -0.65f, 0);
+        Matrix4x4 thighS = Transformations.ScaleM(0.4f,0.8f, 0.5f);
+        Matrix4x4 thighR = Transformations.RotateM(rotLegs*2.0f, Transformations.AXIS.AX_X);
+        Matrix4x4 thighI = attachedI * thighT * thighR;
+        Matrix4x4 thighM = thighI * thighS;
+        ApplyTransformations(thighM, GameObject.Find(string.Concat("Thigh", side))); //Concat to get ThighRight or ThighLeft
+        
+        Matrix4x4 kneeT = Transformations.TranslateM(0.0f*axisSide, -0.60f, 0);
+        Matrix4x4 kneeS = Transformations.ScaleM(0.4f, 0.4f, 0.5f);
+        Matrix4x4 kneeRotation = Transformations.RotateM(rotLegs, Transformations.AXIS.AX_X);
+        Matrix4x4 kneeR = Transformations.RotateM(rotKnee/1.2f, Transformations.AXIS.AX_X);
+        Matrix4x4 kneeI = thighI * kneeT * kneeRotation * kneeR ;
+        Matrix4x4 kneeM = kneeI * kneeS;
+        ApplyTransformations(kneeM, GameObject.Find(string.Concat("Knee", side))); //Concat to get KneeRight or KneeLeft
+
+        Matrix4x4 legT = Transformations.TranslateM(0.0f*axisSide, -0.70f, 0);
+        Matrix4x4 legS = Transformations.ScaleM(0.4f, 1.0f, 0.5f);
+    
+        Matrix4x4 legR = Transformations.RotateM(-rotLegs, Transformations.AXIS.AX_X);
+        Matrix4x4 legRotation = Transformations.RotateM(rotWalk, Transformations.AXIS.AX_X);
+        Matrix4x4 legI = kneeI * legT * legRotation * legR;
+        Matrix4x4 legM = legI * legS;
+        ApplyTransformations(legM, GameObject.Find(string.Concat("Leg", side)));
+
+        Matrix4x4 footT = Transformations.TranslateM(0.0f*axisSide, -0.70f, -0.25f);
+        Matrix4x4 footS = Transformations.ScaleM(0.4f, 0.4f, 0.8f);
+        Matrix4x4 footR = Transformations.RotateM(-rotFoot, Transformations.AXIS.AX_X);
+        Matrix4x4 footM = legI * footT * footS * footR;
+        ApplyTransformations(footM, GameObject.Find(string.Concat("Foot", side)));
+        
     }
 
     // Update is called once per frame
     void Update()
     {
-        rotationBody = rotationBody - directionBody * deltaBody;
-        if (rotationBody < maxAngleBody || rotationBody > minAngleBody) directionBody = -directionBody;
-        AnimateBody(rotationBody);
-        //LeftSide
-        rotationLegsLeft = rotationLegsLeft - directionLeftLeg * deltaLegs;
-        if (rotationLegsLeft < maxAngleLegs || rotationLegsLeft > minAngleLegs) directionLeftLeg = -directionLeftLeg;
-        AnimateLeg(true, rotationLegsLeft);
-        rotationArmsLeft = rotationArmsLeft - directionLeftArm * deltaArms;
-        if (rotationArmsLeft < maxAngleArms|| rotationArmsLeft > minAngleArms) directionLeftArm = -directionLeftArm;
-        AnimateArm(true, rotationArmsLeft);
-        //RightSide
-        rotationLegsRight= rotationLegsRight - directionRightLeg * deltaLegs;
-        if (rotationLegsRight < maxAngleLegs || rotationLegsRight > minAngleLegs) directionRightLeg = -directionRightLeg;
-        AnimateLeg(false, rotationLegsRight);
-        rotationArmsRight = rotationArmsRight - directionRightArm * deltaArms;
-        if (rotationArmsRight < maxAngleArms || rotationArmsRight > minAngleArms) directionRightArm = -directionRightArm;
-        AnimateArm(false, rotationArmsRight);
+        //HIPS
+        Matrix4x4 hipsS = Transformations.ScaleM(1.0f,0.5f,0.5f);
+        Matrix4x4 hipsM = hipsS;
+        Matrix4x4 hipsI = Matrix4x4.identity; //inherit hips
+        ApplyTransformations(hipsM, GameObject.Find("Hips"));
+
+        //TORSO
+        Matrix4x4 torsoT = Transformations.TranslateM(0,0.8f,0);
+        Matrix4x4 torsoS = Transformations.ScaleM(1.0f,1.0f,0.5f);;
+        Matrix4x4 torsoI = hipsI * torsoT; //inherit from torso
+        Matrix4x4 torsoM = torsoI * torsoS;
+        ApplyTransformations(torsoM, GameObject.Find("Torso"));
         
+        //ARMS
+
+        rots["ArmL"] += dirLeftArm[0] * deltaArm;
+        if (rots["ArmL"] > angles["MArm"] || rots["ArmL"] < angles["mArm"]) dirLeftArm[0] = -dirLeftArm[0];    
+        rots["ShoulderL"] += dirLeftArm[0] * deltaArm;
+        if (rots["ShoulderL"] > angles["MArm"] || rots["ShoulderL"] < angles["mArm"]) dirLeftArm[0] = -dirLeftArm[0];
+        AnimateArms(torsoI, -1.0f, "Left", rots["ArmL"], rots["ShoulderL"]);
+        AnimateArms(torsoI, 1.0f, "Right", rots["ArmL"], rots["ShoulderL"]);
+
+        //NECK
+
+        Matrix4x4 neckT = Transformations.TranslateM(0,0.6f,0);
+        Matrix4x4 neckS = Transformations.ScaleM(0.3f,0.3f,0.3f);
+        Matrix4x4 neckI = torsoI * neckT ; //inherit from torso y rotacion si tiene
+        Matrix4x4 neckM = neckI * neckS;
+        ApplyTransformations(neckM, GameObject.Find("Neck"));
+
+        //HEAD, does not pass property
+
+        Matrix4x4 headT = Transformations.TranslateM(0,0.4f,0);
+        Matrix4x4 headS = Transformations.ScaleM(0.5f,0.5f,0.5f);;
+        Matrix4x4 headM = neckI * headT * headS;
+        ApplyTransformations(headM, GameObject.Find("Head"));
+
+        //LEFT LEG
+        rots["AllLegL"] += dirLeftLeg[0] * deltaLeg; //For the thigh
+        if (rots["AllLegL"] > angles["MAllLeg"] || rots["AllLegL"] < angles["mAllLeg"]) dirLeftLeg[0] = -dirLeftLeg[0]; 
+        rots["WalkL"] += dirLeftLeg[1] * deltaLeg; //For the way the walk looks (the movement of the leg)
+        if (rots["WalkL"] > angles["MAllLeg"] || rots["WalkL"] < angles["mAllLeg"]) dirLeftLeg[1] = -dirLeftLeg[1];
+        rots["KneeL"] += dirLeftLeg[2] * deltaLeg; //Minor rotation of the knee
+        if (rots["KneeL"] > angles["MKnee"] || rots["KneeL"] < angles["mKnee"]) dirLeftLeg[2] = -dirLeftLeg[2];
+        rots["FootL"] += dirLeftLeg[3] * deltaLeg; //For the foot
+        if (rots["FootL"] > angles["MFoot"] || rots["FootL"] < angles["mFoot"]) dirLeftLeg[3] = -dirLeftLeg[3];
+        AnimateLegs(hipsI, -1.0f, "Left", rots["AllLegL"], rots["WalkL"] , rots["KneeL"], rots["FootL"]);
+
+        //RIGHT LEG
+        rots["AllLegR"] += dirRightLeg[0] * deltaLeg;//For the thigh
+        if (rots["AllLegR"] > angles["MAllLeg"] || rots["AllLegR"] < angles["mAllLeg"]) dirRightLeg[0] = -dirRightLeg[0];
+        rots["WalkR"] += dirRightLeg[1] * deltaLeg;//For the way the walk looks (the movement of the leg)
+        if (rots["WalkR"] > angles["MAllLeg"] || rots["WalkR"] < angles["mAllLeg"]) dirRightLeg[1] = -dirRightLeg[1];
+        rots["KneeR"] += dirRightLeg[2] * deltaLeg;//Minor rotation of the knee
+        if (rots["KneeR"] > angles["MKnee"] || rots["KneeR"] < angles["mKnee"]) dirRightLeg[2] = -dirRightLeg[2];
+        rots["FootR"] += dirRightLeg[3] * deltaLeg;//For the foot
+        if (rots["FootR"] > angles["MFoot"] || rots["FootR"] < angles["mFoot"]) dirRightLeg[3] = -dirRightLeg[3];
+        AnimateLegs(hipsI, 1.0f, "Right", rots["AllLegR"], rots["WalkR"] , rots["KneeR"], rots["FootR"]);
     }
 }
