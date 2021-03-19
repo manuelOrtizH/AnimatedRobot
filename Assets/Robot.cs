@@ -1,4 +1,9 @@
-﻿//EQUIPO BICHOTAS
+﻿/*EQUIPO
+Gerardo Arturo Miranda Godoy
+Mónica Lara Pineda
+Manuel Ortiz Hernández
+Óscar Contreras Palacios
+*/
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -10,22 +15,26 @@ public class Robot : MonoBehaviour
     float[] dirRightLeg = new float[4]{-1.0f, -1.0f, -1.0f, -1.0f};
     float[] dirLeftArm = new float[2]{1.0f, 1.0f};
     float[] dirRightArm = new float[2]{-1.0f, -1.0f}; 
+    float dirChest = -1.0f;
     //Dictionary that saves all the angles                              /*Legs Angles*/
     Dictionary <string, float> angles = new Dictionary<string, float>(){{"mMovement", -10.0f}, {"MMovement", 10.0f},{"mKnee", -1.0f}, 
                                                                         {"MKnee", 1.0f},{"mFoot",20.0f}, {"MFoot", 0.0f},
                                                                         /*Arms Angles*/
-                                                                        {"mShoulder", 10.0f}, {"MShoulder", -45.0f}};
+                                                                        {"mShoulder", 10.0f}, {"MShoulder", -45.0f},
+                                                                        /*Chest*/
+                                                                        {"mChest", -10.0f}, {"MChest", 10.0f}};
     //Dictionary that saves all the rots variables                      /*Legs Rots*/
     Dictionary <string, float> rots = new Dictionary<string, float>(){  {"AllLegL", 0.0f}, {"WalkL", 10.0f}, {"FootL", 5.0f}, 
                                                                         {"KneeL", 0.5f}, {"AllLegR", 0.0f}, {"WalkR", 10.0f}, 
                                                                         {"FootR", 5.0f}, {"KneeR", 0.5f},
                                                                         /*Arms Rots*/
                                                                         {"ArmR", 0.0f}, {"ArmL", 0.0f}, {"ShoulderR", -10.0f}, 
-                                                                        {"ShoulderL", -10.0f}};
-    float deltaLeg = 0.2f;
-    float deltaArm = 0.2f;
+                                                                        {"ShoulderL", -10.0f},
+                                                                        /*Chest*/
+                                                                        {"Chest", 0.0f}};
+    float delta = 0.2f;
     //Array to  name all the game objects created and later on, found them by this name.
-    string[] blocksNames = {"Hips", "Torso", "Neck", "Head", 
+    string[] blocksNames = {"Hips", "Torso", "Neck", "Head","Chest",  
                             /*Arms*/ 
                             "ShoulderRight","ShoulderLeft", "BicepRight", "BicepLeft",
                             "ElbowRight", "ElbowLeft", "ForearmRight", "ForearmLeft",
@@ -56,7 +65,7 @@ public class Robot : MonoBehaviour
 
     void AnimateArms(Matrix4x4 attachedI, float axisSide, string side, float rotArm, float rotShoulder){
         //SHOULDER 
-        Matrix4x4 shoulderT = Transformations.TranslateM(0.7f*axisSide,0.35f,0);
+        Matrix4x4 shoulderT = Transformations.TranslateM(0.7f*axisSide,0.07f,0);
         Matrix4x4 shoulderR = Transformations.RotateM(90, Transformations.AXIS.AX_Z);
         Matrix4x4 shoulderMove = Transformations.RotateM(rotArm, Transformations.AXIS.AX_Y);
         Matrix4x4 shoulderS = Transformations.ScaleM(0.3f,0.3f,0.3f);
@@ -137,30 +146,40 @@ public class Robot : MonoBehaviour
         ApplyTransformations(hipsM, GameObject.Find("Hips"));
 
         //TORSO
-        Matrix4x4 torsoT = Transformations.TranslateM(0,0.8f,0);
-        Matrix4x4 torsoS = Transformations.ScaleM(1.0f,1.0f,0.5f);;
+        Matrix4x4 torsoT = Transformations.TranslateM(0,0.6f,0);
+        Matrix4x4 torsoS = Transformations.ScaleM(1.0f,0.7f,0.5f);;
         Matrix4x4 torsoI = hipsI * torsoT; //inherit from torso
         Matrix4x4 torsoM = torsoI * torsoS;
         ApplyTransformations(torsoM, GameObject.Find("Torso"));
+
+        //CHEST
+        rots["Chest"] += dirChest * delta;
+        if (rots["Chest"] > angles["MChest"] || rots["Chest"] < angles["mChest"]) dirChest = -dirChest;
+        Matrix4x4 chestT = Transformations.TranslateM(0, 0.55f, 0);
+        Matrix4x4 chestS = Transformations.ScaleM(1.0f, 0.4f, 0.8f);
+        Matrix4x4 chestR = Transformations.RotateM(rots["Chest"], Transformations.AXIS.AX_X);
+        Matrix4x4 chestI = torsoI * chestT;
+        Matrix4x4 chestM = chestI *chestS * chestR; //inherit from torso
+        ApplyTransformations(chestM, GameObject.Find("Chest"));
         
         //LEFT ARM
-        rots["ArmL"] += dirLeftArm[0] * deltaArm;
+        rots["ArmL"] += dirLeftArm[0] * delta;
         if (rots["ArmL"] > angles["MMovement"] || rots["ArmL"] < angles["mMovement"]) dirLeftArm[0] = -dirLeftArm[0];    
-        rots["ShoulderL"] += dirLeftArm[1] * deltaArm;
+        rots["ShoulderL"] += dirLeftArm[1] * delta;
         if (rots["ShoulderL"] > angles["MShoulder"] || rots["ShoulderL"] < angles["mShoulder"]) dirLeftArm[1] = -dirLeftArm[1];
-        AnimateArms(torsoI, -1.0f, "Left", rots["ArmL"], rots["ShoulderL"]);
+        AnimateArms(chestI, -1.0f, "Left", rots["ArmL"], rots["ShoulderL"]);
 
         //RIGHT ARM
-        rots["ArmR"] += dirRightArm[0] * deltaArm;
+        rots["ArmR"] += dirRightArm[0] * delta;
         if (rots["ArmR"] > angles["MMovement"] || rots["ArmR"] < angles["mMovement"]) dirRightArm[0] = -dirRightArm[0];    
-        rots["ShoulderR"] += dirRightArm[1] * deltaArm;
+        rots["ShoulderR"] += dirRightArm[1] * delta;
         if (rots["ShoulderR"] > angles["MShoulder"] || rots["ShoulderR"] < angles["mShoulder"]) dirRightArm[1] = -dirRightArm[1];
-        AnimateArms(torsoI, 1.0f, "Right", rots["ArmR"], rots["ShoulderR"]);
+        AnimateArms(chestI, 1.0f, "Right", rots["ArmR"], rots["ShoulderR"]);
 
         //NECK
-        Matrix4x4 neckT = Transformations.TranslateM(0,0.6f,0);
+        Matrix4x4 neckT = Transformations.TranslateM(0,0.35f,0);
         Matrix4x4 neckS = Transformations.ScaleM(0.3f,0.3f,0.3f);
-        Matrix4x4 neckI = torsoI * neckT ; //inherit from torso y rotacion si tiene
+        Matrix4x4 neckI = chestI * neckT ; //inherit from torso y rotacion si tiene
         Matrix4x4 neckM = neckI * neckS;
         ApplyTransformations(neckM, GameObject.Find("Neck"));
 
@@ -171,24 +190,24 @@ public class Robot : MonoBehaviour
         ApplyTransformations(headM, GameObject.Find("Head"));
 
         //LEFT LEG
-        rots["AllLegL"] += dirLeftLeg[0] * deltaLeg; //For the thigh
+        rots["AllLegL"] += dirLeftLeg[0] * delta; //For the thigh
         if (rots["AllLegL"] > angles["MMovement"] || rots["AllLegL"] < angles["mMovement"]) dirLeftLeg[0] = -dirLeftLeg[0]; 
-        rots["WalkL"] += dirLeftLeg[1] * deltaLeg; //For the way the walk looks (the movement of the leg)
+        rots["WalkL"] += dirLeftLeg[1] * delta; //For the way the walk looks (the movement of the leg)
         if (rots["WalkL"] > angles["MMovement"] || rots["WalkL"] < angles["mMovement"]) dirLeftLeg[1] = -dirLeftLeg[1];
-        rots["KneeL"] += dirLeftLeg[2] * deltaLeg; //Minor rotation of the knee
+        rots["KneeL"] += dirLeftLeg[2] * delta; //Minor rotation of the knee
         if (rots["KneeL"] > angles["MKnee"] || rots["KneeL"] < angles["mKnee"]) dirLeftLeg[2] = -dirLeftLeg[2];
-        rots["FootL"] += dirLeftLeg[3] * deltaLeg; //For the foot
+        rots["FootL"] += dirLeftLeg[3] * delta; //For the foot
         if (rots["FootL"] > angles["MFoot"] || rots["FootL"] < angles["mFoot"]) dirLeftLeg[3] = -dirLeftLeg[3];
         AnimateLegs(hipsI, -1.0f, "Left", rots["AllLegL"], rots["WalkL"] , rots["KneeL"], rots["FootL"]);
 
         //RIGHT LEG
-        rots["AllLegR"] += dirRightLeg[0] * deltaLeg;//For the thigh
+        rots["AllLegR"] += dirRightLeg[0] * delta;//For the thigh
         if (rots["AllLegR"] > angles["MMovement"] || rots["AllLegR"] < angles["mMovement"]) dirRightLeg[0] = -dirRightLeg[0];
-        rots["WalkR"] += dirRightLeg[1] * deltaLeg;//For the way the walk looks (the movement of the leg)
+        rots["WalkR"] += dirRightLeg[1] * delta;//For the way the walk looks (the movement of the leg)
         if (rots["WalkR"] > angles["MMovement"] || rots["WalkR"] < angles["mMovement"]) dirRightLeg[1] = -dirRightLeg[1];
-        rots["KneeR"] += dirRightLeg[2] * deltaLeg;//Minor rotation of the knee
+        rots["KneeR"] += dirRightLeg[2] * delta;//Minor rotation of the knee
         if (rots["KneeR"] > angles["MKnee"] || rots["KneeR"] < angles["mKnee"]) dirRightLeg[2] = -dirRightLeg[2];
-        rots["FootR"] += dirRightLeg[3] * deltaLeg;//For the foot
+        rots["FootR"] += dirRightLeg[3] * delta;//For the foot
         if (rots["FootR"] > angles["MFoot"] || rots["FootR"] < angles["mFoot"]) dirRightLeg[3] = -dirRightLeg[3];
         AnimateLegs(hipsI, 1.0f, "Right", rots["AllLegR"], rots["WalkR"] , rots["KneeR"], rots["FootR"]);
     }
