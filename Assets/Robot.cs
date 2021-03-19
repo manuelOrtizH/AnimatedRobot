@@ -32,7 +32,7 @@ public class Robot : MonoBehaviour
                                                                         {"ShoulderL", -10.0f},
                                                                         /*Chest*/
                                                                         {"Chest", 0.0f}};
-    float delta = 0.2f;
+    float delta = 0.4f;
     //Array to  name all the game objects created and later on, found them by this name.
     string[] blocksNames = {"Hips", "Torso", "Neck", "Head","Chest",  
                             /*Arms*/ 
@@ -65,7 +65,7 @@ public class Robot : MonoBehaviour
 
     void AnimateArms(Matrix4x4 attachedI, float axisSide, string side, float rotArm, float rotShoulder){
         //SHOULDER 
-        Matrix4x4 shoulderT = Transformations.TranslateM(0.7f*axisSide,0.07f,0);
+        Matrix4x4 shoulderT = Transformations.TranslateM(0.7f*axisSide,0.05f,0);
         Matrix4x4 shoulderR = Transformations.RotateM(90, Transformations.AXIS.AX_Z);
         Matrix4x4 shoulderMove = Transformations.RotateM(rotArm, Transformations.AXIS.AX_Y);
         Matrix4x4 shoulderS = Transformations.ScaleM(0.3f,0.3f,0.3f);
